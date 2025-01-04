@@ -74,6 +74,18 @@ public class MoviesController : ControllerBase
         
         return Ok(filteredMovies);
     }
+    
+    [HttpGet("until-age/{ageRating}")]
+    [ProducesResponseType(typeof(List<MovieTitle>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllByYear([FromRoute] AgeRating ageRating)
+    {
+        var filteredMovies = await _context.Movies
+            .Where(movie => movie.AgeRating <= ageRating)
+            .Select(movie => new MovieTitle { Id = movie.Id, Title = movie.Title })
+            .ToListAsync();
+        
+        return Ok(filteredMovies);
+    }
 
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(Movie), StatusCodes.Status200OK)]
@@ -83,11 +95,13 @@ public class MoviesController : ControllerBase
         // Queries the database, returns first match, null if not found
         // var movie = await _context.Movies.FirstOrDefaultAsync(x => x.Id == id);
 
-        // Similar to FirstOrDefault, but throws if more than one match is found.
-        // var movie = await _context.Movies.SingleOrDefaultAsync(x => x.Id == id);
-
         // Servers from memory if already fetched, otherwise queries the DB. Run the risk of serving stale data.
-        var movie = await _context.Movies.FindAsync(id);
+        //var movie = await _context.Movies.FindAsync(id);
+        
+        // Similar to FirstOrDefault, but throws if more than one match is found.
+        var movie = await _context.Movies
+            .Include(movie => movie.Genre)
+            .SingleOrDefaultAsync(movie => movie.Id == id);
 
         return movie == null
             ? NotFound()

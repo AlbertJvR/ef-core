@@ -1,3 +1,4 @@
+using EFCore.Api.Data.EntityMapping;
 using EFCore.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,5 +31,36 @@ public class MoviesContext : DbContext
         optionsBuilder.LogTo(Console.WriteLine);
         
         base.OnConfiguring(optionsBuilder);
+    }
+
+    /*
+     * By adding the mappings here, we remove the problem of attributes regarding multiple db engines, but one method to
+     * create the mappings for all the different entity configurations will become chaotic very quickly, and as such
+     * it is recommended to use IEntityTypeConfigurations in separate files.
+     */
+    // protected override void OnModelCreating(ModelBuilder modelBuilder)
+    // {
+    //     modelBuilder.Entity<Movie>()
+    //         .ToTable("Pictures")
+    //         .HasKey(movie => movie.Id);
+    //     
+    //     modelBuilder.Entity<Movie>().Property(movie => movie.Title)
+    //         .HasColumnType("varchar")
+    //         .HasMaxLength(128)
+    //         .IsRequired();
+    //
+    //     modelBuilder.Entity<Movie>().Property(movie => movie.ReleaseDate)
+    //         .HasColumnType("date");
+    //     
+    //     modelBuilder.Entity<Movie>().Property(movie => movie.Synopsis)
+    //         .HasColumnType("varchar(max)")
+    //         .HasColumnName("Plot");
+    //     
+    // }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfiguration(new MovieMapping());
+        modelBuilder.ApplyConfiguration(new GenreMapping());
     }
 }
